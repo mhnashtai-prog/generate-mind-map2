@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synonym Mind Map Generator</title>
+    <style>
+        /* Keep all your existing CSS styles */
+        body { font-family: Arial, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; }
+        h1 { color: #2c3e50; text-align: center; }
+        .input-container { display: flex; justify-content: center; margin: 20px 0; }
+        input { padding: 10px; width: 300px; }
+        button { padding: 10px 20px; background: #3498db; color: white; border: none; cursor: pointer; }
+        .mind-map { position: relative; height: 500px; margin-top: 40px; display: none; }
+        .central-word { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+                       background: #2c3e50; color: white; padding: 15px 25px; border-radius: 8px; }
+        .synonym { position: absolute; background: #ecf0f1; padding: 10px 15px; border-radius: 6px; 
+                  cursor: pointer; width: 120px; text-align: center; }
+        .definition { display: none; position: absolute; background: white; padding: 10px; 
+                     border-radius: 6px; box-shadow: 0 0 10px rgba(0,0,0,0.1); width: 200px; }
+        .loading { text-align: center; display: none; }
+        .error { color: red; text-align: center; display: none; }
+    </style>
+</head>
+<body>
+    <h1>Synonym Mind Map Generator</h1>
+    <div class="input-container">
+        <input type="text" id="wordInput" placeholder="Enter a word (e.g., interesting)">
+        <button id="generateBtn">Generate</button>
+    </div>
+    <div class="loading">Generating mind map...</div>
+    <div class="error">Word not found. Try "gloomy", "happy", or "interesting"</div>
+    <div class="mind-map" id="mindMap"></div>
+
+    <script>
+        // Enhanced synonym database
+        const synonymDatabase = {
+            interesting: ['fascinating', 'engaging', 'compelling', 'intriguing', 'absorbing', 
+                         'entertaining', 'stimulating', 'thought-provoking', 'captivating', 'gripping'],
+            gloomy: ['sorrowful', 'melancholic', 'doleful', 'wretched', 'deplorable'],
+            happy: ['joyful', 'cheerful', 'content', 'delighted', 'jubilant']
+        };
+
+        // Enhanced definition database
+        const definitionDatabase = {
+            'fascinating': "Capable of arousing and holding the attention",
+            'engaging': "Attracting or delighting",
+            'compelling': "Driving or forcing someone to do something",
+            'intriguing': "Disturbingly provocative",
+            'absorbing': "Capable of arousing and holding the attention",
+            'entertaining': "Agreeably diverting",
+            'stimulating': "That stimulates",
+            'thought-provoking': "Making you think a lot about a subject",
+            'captivating': "Capturing interest as if by a spell",
+            'gripping': "Capable of arousing and holding the attention"
+        };
+
+        document.getElementById('generateBtn').addEventListener('click', generateMindMap);
+        document.getElementById('wordInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') generateMindMap();
+        });
+
+        function generateMindMap() {
+            const word = document.getElementById('wordInput').value.trim().toLowerCase();
+            if (!word) return;
+            
+            document.querySelector('.loading').style.display = 'block';
+            document.querySelector('.error').style.display = 'none';
+            document.getElementById('mindMap').style.display = 'none';
+            document.getElementById('mindMap').innerHTML = '';
+            
+            setTimeout(() => {
+                if (synonymDatabase[word]) {
+                    displayMindMap(word, synonymDatabase[word]);
+                    document.querySelector('.loading').style.display = 'none';
+                    document.getElementById('mindMap').style.display = 'block';
+                } else {
+                    document.querySelector('.loading').style.display = 'none';
+                    document.querySelector('.error').style.display = 'block';
+                }
+            }, 800);
+        }
+
+        function displayMindMap(centralWord, synonyms) {
+            const mindMap = document.getElementById('mindMap');
+            const centerX = mindMap.offsetWidth / 2;
+            const centerY = mindMap.offsetHeight / 2;
+            const radius = Math.min(centerX, centerY) * 0.6;
+            
+            // Create central word
+            const center = document.createElement('div');
+            center.className = 'central-word';
+            center.textContent = centralWord;
+            mindMap.appendChild(center);
+            
+            // Create synonyms in circle
+            synonyms.forEach((word, i) => {
+                const angle = (i / synonyms.length) * 2 * Math.PI;
+                const x = centerX + radius * Math.cos(angle) - 60;
+                const y = centerY + radius * Math.sin(angle) - 20;
+                
+                const synonym = document.createElement('div');
+                synonym.className = 'synonym';
+                synonym.textContent = word;
+                synonym.style.left = x + 'px';
+                synonym.style.top = y + 'px';
+                
+                const definition = document.createElement('div');
+                definition.className = 'definition';
+                definition.innerHTML = `<strong>${word}</strong><br><br>${definitionDatabase[word] || 'Definition not available'}`;
+                definition.style.left = (x + 30) + 'px';
+                definition.style.top = (y + 30) + 'px';
+                
+                synonym.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    document.querySelectorAll('.definition').forEach(d => d.style.display = 'none');
+                    definition.style.display = 'block';
+                });
+                
+                mindMap.appendChild(synonym);
+                mindMap.appendChild(definition);
+            });
+            
+            document.addEventListener('click', () => {
+                document.querySelectorAll('.definition').forEach(d => d.style.display = 'none');
+            });
+        }
+    </script>
+</body>
+</html>
